@@ -20,7 +20,7 @@ class ClientView:
 
 
 	# player を画面の中心とした場合の a の画面内座標(左上が 0,0)を計算して返す
-	def calc_relative_point(relative_x, relative_y):
+	def calc_relative_point(self, relative_x, relative_y):
 		x = relative_x + CLIENT_FIELD_WIDTH / 2 
 		y = relative_y + CLIENT_FIELD_HEIGHT / 2
 		return x, y
@@ -38,9 +38,9 @@ class ClientView:
 
 	def sight_update(self, player=''):
 		# 自分を中心に描く			
-		self.canvas.create_oval(int(CLIENT_FIELD_WIDTH/2 - PLAYER_SIZE/2), int(CLIENT_FIELD_HEIGHT/2 + PLAYER_SIZE/2), int(CLIENT_FIELD_WIDTH/2 + PLAYER_SIZE/2), int(CLIENT_FIELD_HEIGHT/2 + PLAYER_SIZE/2), fill=PLAYER_COLORS[player.player_id])
+		self.canvas.create_oval(int(CLIENT_FIELD_WIDTH/2 - PLAYER_SIZE/2), int(CLIENT_FIELD_HEIGHT/2 - PLAYER_SIZE/2), int(CLIENT_FIELD_WIDTH/2 + PLAYER_SIZE/2), int(CLIENT_FIELD_HEIGHT/2 + PLAYER_SIZE/2), fill=PLAYER_COLORS[player.player_id])	
 		# 他のプレイやーがいるならば描写する
-		if 'sight' in player.sense_data and 'enemies' in player.sense_data['sight']:
+		if 'enemies' in player.sense_data['sight']:
 			for enemy in player.sense_data['sight']['enemies']:
 				x,y = self.calc_relative_point(enemy['relative_x'], enemy['relative_y'])
 				self.canvas.create_oval(int(x-PLAYER_SIZE//2), int(y-PLAYER_SIZE//2), int(x+PLAYER_SIZE//2), int(y+PLAYER_SIZE//2), fill=PLAYER_COLORS[enemy['player_id']])

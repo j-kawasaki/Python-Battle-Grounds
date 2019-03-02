@@ -27,7 +27,8 @@ class Player:
 		self.team_id = -1
 		self.x = random.randrange(FIELD_WIDTH)
 		self.y = random.randrange(FIELD_HEIGHT)
-		self.direction =  math.pi*2*10000/random.randrange(10000)
+		self.direction =  random.uniform(-math.pi, math.pi)
+		self.move_direction = 0
 		self.damage = 0
 		self.count = 0
 		self.status_list = {self.PLAYER_STATUS_RESPAWN : 0, self.PLAYER_STATUS_ALIVE: 0, self.PLAYER_STATUS_NOMAL_COOL: 0, self.PLAYER_STATUS_BOMB_COOL: 0} # 状態管理用辞書リスト
@@ -44,25 +45,23 @@ class Player:
 			player_data = received_data['own']
 			self.player_id = player_data['player_id']
 			self.team_id = player_data['team_id']
-			self.x = player_data['x']
-			self.y = player_data['y']
-			self.direction = player_data['direction']
+#			self.direction = player_data['direction']
 			self.damage = player_data['damage']
 			self.count = player_data['count']
 			self.status_list = player_data['status_list']
-			self.move_flag = player_data['move_flag']
 			self.stanima = player_data['stamina']
 		
 		self.sense_data = received_data
 
 	# 主にサーバーで使われる関数
 	def dumps_player_data(self):
-		data = {'player_id':self.player_id,'team_id':self.team_id,'x':self.x,'y':self.y,'direction':self.direction,'damage':self.damage,'count':self.count,'status_list':self.status_list,'move_flag':self.move_flag, 'stamina':self.stamina}
+		data = {'player_id':self.player_id,'team_id':self.team_id, 'damage':self.damage,'count':self.count,'status_list':self.status_list, 'stamina':self.stamina}
 		return data
 
 
 	def update(self, received_data):
-		self.direction = received_data['direction']
+#		self.move_direction = received_data['move_direction']
+		self.look(received_data)
 		self.move(received_data)
 		self.shoot(received_data)
 
@@ -70,6 +69,15 @@ class Player:
 			self.status_list[key] += 1
 		self.count += 1
 
+	def look(self, received_data):
+		turn_sight = received_data['turn_sight']
+		if turn_sight == 'RIGHT':
+			self.direction -= math.pi/100
+		elif turn_sight == 'LEFT': 
+			self.direction += math.pi/100
+
+		# -pi ~ piの間で正規化する
+		self.direction = math.atan2(math.sin(self.direction), math.cos(self.direction))
 
 	def shoot(self, received_data):
 		if received_data['shoot_nomal']:
@@ -89,7 +97,7 @@ class Player:
 
 	def move(self, received_data):
 		move_flag = received_data['move_flag']
-		direction = received_data['direction']
+		direction = received_data['move_direction']
 		if move_flag == self.PLAYER_MOVE_RUN and 0 < self.stamina:
 			self.x += PLAYER_VELOCITY_RUN * math.cos(direction)
 			self.y += PLAYER_VELOCITY_RUN * math.sin(direction)

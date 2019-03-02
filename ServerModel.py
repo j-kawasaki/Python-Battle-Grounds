@@ -4,18 +4,20 @@ import math
 from Player import Player
 from const import *
 from BulletManager import BulletManager
+import random
+import numpy as np
+from numpy import linalg as LA
 
 
 
 class ServerModel:
 
-	def calc_dist(a, b):
-		return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
-
 	def __init__(self):
 		self.bm = BulletManager()
 		self.entire_data = {'players':{}, 'bullets': self.bm.bullet_list}
 
+	def calc_dist(self, a, b):
+		return math.sqrt(math.pow(a.x - b.x, 2) + math.pow(a.y - b.y, 2))
 
 	def set_init_data(self, new_player_data):
 		self.entire_data['players'][new_player_data.player_id] = new_player_data
@@ -53,27 +55,29 @@ class ServerModel:
 
 
 	def dumps_sight_data(self, player):
-		sight_data = {}
+		sight_data = {'enemies':[]}
 		# 自分以外の全プレイヤーについて
 		for other in self.entire_data['players'].values():
 			if other.player_id != player.player_id:
-				relatiev_distance = self.calc_dist(other, player)
+				relative_distance = self.calc_dist(other, player)
 				relative_direction = math.atan2(other.y - player.y, other.x - player.x) - player.direction # 自分の向きと他のプレイヤーのいる向きの差
 				# もし他のプレイヤーが中心視野内に入っているならば
-				if relatiev_distance < PLAYER_SIGHT_RANGE and relative_direction < PLAYER_SIGHT_CENTRAL_ANGLE:
+				if relative_distance < PLAYER_SIGHT_RANGE and abs(relative_direction) < PLAYER_SIGHT_CENTRAL_ANGLE:
 					enemy = {}
 					enemy['player_id'] = other.player_id
 					enemy['direction'] = relative_direction
-					enemy['distance'] = relatie_distance
+					enemy['distance'] = relative_distance
 					enemy['relative_x'] = relative_distance * math.cos(relative_direction)
 					enemy['relative_y'] = relative_distance * math.sin(relative_direction)
 					sight_data['enemies'].append(enemy)
 				# もし他のプレイヤーが周辺視野内に入っているならば
-				elif relatiev_distance < PLAYER_SIGHT_RANGE and relative_direction < PLAYER_SIGHT_PERIPHERAL_ANGLE:
+				elif relative_distance < PLAYER_SIGHT_RANGE and abs(relative_direction) < PLAYER_SIGHT_PERIPHERAL_ANGLE:
+					if other.player_id == 2:
+						print(f'relative:{abs(relative_direction)}')
 					enemy = {}
 					enemy['player_id'] = other.player_id
 					enemy['direction'] = relative_direction + random.uniform(-math.pi/10, math.pi/10) 
-					enemy['distance'] = relatie_distance + random.uniform(-PLAYER_SIZE, PLAYER_SIZE)
+					enemy['distance'] = relative_distance + random.uniform(-PLAYER_SIZE, PLAYER_SIZE)
 					enemy['relative_x'] = relative_distance * math.cos(relative_direction)
 					enemy['relative_y'] = relative_distance * math.sin(relative_direction)
 					sight_data['enemies'].append(enemy)
