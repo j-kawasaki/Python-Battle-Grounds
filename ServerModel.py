@@ -55,7 +55,7 @@ class ServerModel:
 
 
 	def dumps_sight_data(self, player):
-		sight_data = {'enemies':[]}
+		sight_data = {'enemies':[], 'bullets':[]}
 		# 自分以外の全プレイヤーについて
 		for other in self.entire_data['players'].values():
 			if other.player_id != player.player_id:
@@ -81,6 +81,31 @@ class ServerModel:
 					enemy['relative_x'] = relative_distance * math.cos(relative_direction)
 					enemy['relative_y'] = relative_distance * math.sin(relative_direction)
 					sight_data['enemies'].append(enemy)
+
+		# 弾について
+		for bullet in self.entire_data['bullets']:
+			relative_distance = self.calc_dist(bullet, player)
+			relative_direction = math.atan2(bullet.y - player.y, bullet.x - player.x) - player.direction # 自分の向きと他のプレイヤーのいる向きの差
+			# もし他のプレイヤーが中心視野内に入っているならば
+			if relative_distance < PLAYER_SIGHT_RANGE and abs(relative_direction) < PLAYER_SIGHT_CENTRAL_ANGLE:
+				b = {}
+				b['player_id'] = bullet.player_id
+				b['bullet_kind'] = bullet.bullet_kind
+				b['direction'] = relative_direction
+				b['distance'] = relative_distance
+				b['relative_x'] = relative_distance * math.cos(relative_direction)
+				b['relative_y'] = relative_distance * math.sin(relative_direction)
+				sight_data['bullets'].append(b)
+			# もし他のプレイヤーが周辺視野内に入っているならば
+			elif relative_distance < PLAYER_SIGHT_RANGE and abs(relative_direction) < PLAYER_SIGHT_PERIPHERAL_ANGLE:
+				b = {}
+				b['player_id'] = bullet.player_id
+				b['bullet_kind'] = bullet.bullet_kind
+				b['direction'] = relative_direction + random.uniform(-math.pi/10, math.pi/10) 
+				b['distance'] = relative_distance + random.uniform(-PLAYER_SIZE, PLAYER_SIZE)
+				b['relative_x'] = relative_distance * math.cos(relative_direction)
+				b['relative_y'] = relative_distance * math.sin(relative_direction)
+				sight_data['bullets'].append(b)
 
 		return sight_data
 '''

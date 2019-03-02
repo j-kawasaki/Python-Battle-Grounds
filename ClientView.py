@@ -2,6 +2,7 @@
 
 import tkinter as tk
 from const import *
+from BulletManager import BulletManager
 
 class ClientView:
 	def __init__(self, window, config):
@@ -42,8 +43,20 @@ class ClientView:
 		# 他のプレイやーがいるならば描写する
 		if 'enemies' in player.sense_data['sight']:
 			for enemy in player.sense_data['sight']['enemies']:
-				x,y = self.calc_relative_point(enemy['relative_x'], enemy['relative_y'])
+				x, y = self.calc_relative_point(enemy['relative_x'], enemy['relative_y'])
 				self.canvas.create_oval(int(x-PLAYER_SIZE//2), int(y-PLAYER_SIZE//2), int(x+PLAYER_SIZE//2), int(y+PLAYER_SIZE//2), fill=PLAYER_COLORS[enemy['player_id']])
+
+		if 'bullets' in player.sense_data['sight']:
+			for b in player.sense_data['sight']['bullets']:
+				x, y = self.calc_relative_point(b['relative_x'], b['relative_y'])
+				if b['bullet_kind'] == BulletManager.BULLET_KIND_NOMAL:
+					size = BULLET_SIZE_NOMAL
+					color = BULLET_COLORS[b['player_id']]
+				elif b['bullet_kind'] == BulletManager.BULLET_KIND_BOMB:
+					size = BULLET_SIZE_BOMB
+					color = BULLET_COLORS[b['player_id']]
+				self.canvas.create_oval(int(x-size//2), int(y-size//2), int(x+size//2), int(y+size//2), fill=color)
+
 
 	def bullet_update(self):
 		for i in range(20):
