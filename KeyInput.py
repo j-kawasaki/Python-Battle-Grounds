@@ -11,7 +11,7 @@ class KeyInput:
 	# ウィンドウオブジェクトにキー入力のイベントを設定
 	def __init__(self, window):
 		self.window = window
-		self.keyList = [KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT, KEY_SHOT, KEY_RUN, KEY_SNEAK, KEY_BOMB, KEY_LOOK_RIGHT, KEY_LOOK_LEFT]
+		self.keyList = [KEY_UP, KEY_DOWN, KEY_RIGHT, KEY_LEFT, KEY_SHOT, KEY_RUN, KEY_SNEAK, KEY_BOMB, KEY_GRANADE, KEY_SMOKE,KEY_LOOK_RIGHT, KEY_LOOK_LEFT]
 		self.pressStatus = {}
 		self.pressTime = {}
 		self.mouseX = 0

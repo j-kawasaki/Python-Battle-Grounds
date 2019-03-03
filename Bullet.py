@@ -23,7 +23,7 @@ class Bullet():
 		self.y = y
 		self.velocity = velocity
 		self.direction = direction
-		self.dagage = damage
+		self.damage = damage
 		self.life_time = 0
 		self.size = size
 		self.dx = math.cos(direction) * velocity

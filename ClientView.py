@@ -55,15 +55,14 @@ class ClientView:
 				elif b['bullet_kind'] == BulletManager.BULLET_KIND_BOMB:
 					size = BULLET_SIZE_BOMB
 					color = BULLET_COLORS[b['player_id']]
+				elif b['bullet_kind'] == BulletManager.BULLET_KIND_GRANADE:
+					size = BULLET_SIZE_GRANADE
+					color = BULLET_COLORS[b['player_id']]
+				elif b['bullet_kind'] == BulletManager.BULLET_KIND_SMOKE:
+					size = BULLET_SIZE_SMOKE
+					color = BULLET_COLOR_SMOKE
 				self.canvas.create_oval(int(x-size//2), int(y-size//2), int(x+size//2), int(y+size//2), fill=color)
 
-
-	def bullet_update(self):
-		for i in range(20):
-			# gamedataのキーにplayer{i}が存在していたら
-			if f'bullets{i}' in self.data:
-				for b in self.data[f'bullets{i}']:
-					self.canvas.create_oval(b['x']-BULLET_SIZE_NOMAL//2, b['y']-BULLET_SIZE_NOMAL//2, b['x']+BULLET_SIZE_NOMAL//2, b['y']+BULLET_SIZE_NOMAL//2 ,fill=BULLET_COLORS[b["id"]])
 
 	def message_update(self):
 		textlist = []

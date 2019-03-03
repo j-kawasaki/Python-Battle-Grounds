@@ -54,6 +54,7 @@ if __name__ == '__main__' :
 				sense_data = model.dumps_all_data(r['payload'])
 				net.transmit_data(r['src'], Event.SERVER_SEND_GAMEDATA, sense_data)
 		model.update_bullet_data()
+		model.checkCollision()
 
 		if len(net.disconnect_now) != 0: # 切断したクライアントがいるなら
 			for player_id in net.disconnect_now[:]:

@@ -72,8 +72,6 @@ class ServerModel:
 					sight_data['enemies'].append(enemy)
 				# もし他のプレイヤーが周辺視野内に入っているならば
 				elif relative_distance < PLAYER_SIGHT_RANGE and abs(relative_direction) < PLAYER_SIGHT_PERIPHERAL_ANGLE:
-					if other.player_id == 2:
-						print(f'relative:{abs(relative_direction)}')
 					enemy = {}
 					enemy['player_id'] = other.player_id
 					enemy['direction'] = relative_direction + random.uniform(-math.pi/10, math.pi/10) 
@@ -108,25 +106,6 @@ class ServerModel:
 				sight_data['bullets'].append(b)
 
 		return sight_data
-'''
-		for bullet in self.entire_data['bullets']:
-			relatie_distance = calc_dist(bullet, player)
-			relative_direction = math.atan2(bullet.y-other.y, player.x-bullet.x) - player.direction
-				# もし弾が中心視野内に入っているならば
-				if relatiev_distance < PLAYER_SIGHT_RANGE and relative_direction < PLAYER_SIGHT_CENTRAL_ANGLE:
-					bullets = {}
-					enemy['player_id'] = other.player_id
-					enemy['direction'] = relative_direction
-					enemy['distance'] = relatie_distance
-					sight_data['enemies'].append(enemy)
-				# もし弾が周辺視野内に入っているならば
-				elif relatiev_distance < PLAYER_SIGHT_RANGE and relative_direction < PLAYER_SIGHT_PERIPHERAL_ANGLE:
-					enemy = {}
-					enemy['player_id'] = other.player_id
-					enemy['direction'] = relative_direction + random.uniform(-math.pi/10, math.pi/10) 
-					enemy['distance'] = relatie_distance + random.uniform(-PLAYER_SIZE, PLAYER_SIZE)
-					sight_data['enemies'].append(enemy)
-'''
 
 #	def update(self, gamedata):
 #		self.load_data(gamedata)
@@ -135,36 +114,33 @@ class ServerModel:
 
 
 
-'''
+
 	# 全てのプレイヤー，弾の組み合わせについて衝突判定
 	def checkCollision(self):
-		for player in self.players.values():
-			for bullet in self.bullets[:]: #[:]することでforループの中でremoveできる
+		for player in self.entire_data['players'].values():
+			for bullet in self.entire_data['bullets'][:]: #[:]することでforループの中でremoveできる
 				# 自分で撃った弾にはあたらない
 #				print(bullet)
-				if player['id'] != bullet['id']:
+				if player.player_id != bullet.player_id:
 					if self.checkBalletPlayerCollision(player, bullet):
 						# 衝突処理
-						player['point'] += BULLET_POINT
-#						print(f'Player {player["id"]} is {player["point"]} damaged')
-						# スレッドで実行しているのでなくなることがある
-						# なくしたい
-						if bullet in self.bullets:
-							self.bullets.remove(bullet)
-							continue
+						player.damage += bullet.damage
+						self.bm.delete_bullet(bullet)
+						continue
+
 
 	# ある弾とあるプレイヤーが次１ステップのうちに衝突するかどうか
 	# 弾のワープに対応するため，1ピクセルづつ動かして検証する（もっと頭いい方法あるはず）
 	def checkBalletPlayerCollision(self, player, bullet):
-		for i in range(int(bullet['v'])):
+		for i in range(int(bullet.velocity)):
 			#print(bullet['direction'])
-			tmpx = bullet['x']+ math.cos(bullet['direction']) * i
-			tmpy = bullet['y']+ math.sin(bullet['direction']) * i
-			dist = math.sqrt(math.pow(player['x'] - tmpx, 2) + math.pow(player['y'] - tmpy, 2))
-			if dist < (PLAYER_SIZE + BULLET_SIZE):
+			tmpx = bullet.x + math.cos(bullet.direction) * i
+			tmpy = bullet.y + math.sin(bullet.direction) * i
+			dist = self.calc_dist(player, bullet)
+			if dist < (PLAYER_SIZE + bullet.size):
 				return True
 		return False
-'''
+
 
 if __name__ == '__main__' :
 	model = ServerModel()

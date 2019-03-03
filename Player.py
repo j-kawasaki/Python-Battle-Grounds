@@ -13,6 +13,8 @@ class Player:
 
 	PLAYER_STATUS_NOMAL_COOL = 50
 	PLAYER_STATUS_BOMB_COOL = 55
+	PLAYER_STATUS_GRANADE_COOL = 60
+	PLAYER_STATUS_SMOKE_COOL = 65
 
 	PLAYER_MOVE_RUN = 100
 	PLAYER_MOVE_WALK = 110
@@ -31,7 +33,8 @@ class Player:
 		self.move_direction = 0
 		self.damage = 0
 		self.count = 0
-		self.status_list = {self.PLAYER_STATUS_RESPAWN : 0, self.PLAYER_STATUS_ALIVE: 0, self.PLAYER_STATUS_NOMAL_COOL: 0, self.PLAYER_STATUS_BOMB_COOL: 0} # 状態管理用辞書リスト
+		self.status_list = {self.PLAYER_STATUS_RESPAWN : 0, self.PLAYER_STATUS_ALIVE: 0, self.PLAYER_STATUS_NOMAL_COOL: 0, 
+							self.PLAYER_STATUS_BOMB_COOL: 0, self.PLAYER_STATUS_GRANADE_COOL: 0, self.PLAYER_STATUS_SMOKE_COOL: 0} # 状態管理用辞書リスト
 		self.move_flag = self.PLAYER_MOVE_STOP
 		self.stamina = PLAYER_MAX_STAMINA
 		self.bm = bullet_manager
@@ -93,6 +96,18 @@ class Player:
 				self.status_list[self.PLAYER_STATUS_BOMB_COOL] = 0
 			else:
 				self.status_list[self.PLAYER_STATUS_BOMB_COOL] += 1
+		if received_data['shoot_granade']:
+			if BULLET_COOLTIME_GRANADE <= self.status_list[self.PLAYER_STATUS_GRANADE_COOL]:
+				self.bm.create_bullet(self.player_id, self.team_id, BulletManager.BULLET_KIND_GRANADE, self.x, self.y, self.direction)
+				self.status_list[self.PLAYER_STATUS_GRANADE_COOL] = 0
+			else:
+				self.status_list[self.PLAYER_STATUS_GRANADE_COOL] += 1
+		if received_data['shoot_smoke']:
+			if BULLET_COOLTIME_SMOKE <= self.status_list[self.PLAYER_STATUS_SMOKE_COOL]:
+				self.bm.create_bullet(self.player_id, self.team_id, BulletManager.BULLET_KIND_SMOKE, self.x, self.y, self.direction)
+				self.status_list[self.PLAYER_STATUS_SMOKE_COOL] = 0
+			else:
+				self.status_list[self.PLAYER_STATUS_SMOKE_COOL] += 1
 
 
 	def move(self, received_data):

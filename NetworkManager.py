@@ -44,14 +44,14 @@ class NetworkManager():
 		if dst == self.DST_ALL:
 			for c in self.connection_list:
 				if not c['empty'] and c['short_address'] != self.my_short_address:
-					c['connection'].send(pickled_data)
+					c['connection'].sendall(pickled_data)
 		elif dst == self.DST_SERVER:
-			self.server_info['connection'].send(pickled_data)
+			self.server_info['connection'].sendall(pickled_data)
 		elif dst != self.my_short_address:
 			conns = [x['connection'] for x in self.connection_list if x['short_address'] == dst]
 			conn = conns[0] if len(conns) else ''
 			if conn != '':
-				conn.send(pickled_data)
+				conn.sendall(pickled_data)
 
 
 	def receive_data(self):
@@ -132,6 +132,18 @@ class NetworkManager():
 			print('Connecting request is rejected')
 			# P2Pなら自分が基準器(ホスト)になる処理
 
+	# 分割受信したデータを全て受け取って結合
+	# https://code.i-harness.com/ja-jp/q/10d973f
+	def recvall(self,sock):
+		BUFF_SIZE = 4096
+		data = b''
+		while True:
+			part = sock.recv(BUFF_SIZE)
+			data += part
+			if len(part) < BUFF_SIZE:
+				break
+		return data
+
 
 	def server_recieve_thread(self, client_info):
 		short_addr = client_info['short_address']
@@ -139,8 +151,8 @@ class NetworkManager():
 		addr = client_info['ip_address']
 		while True:
 			try:
-				# クライアントからデータを受け取る
-				pickled_data = conn.recv(10240)
+				# クライアントからデータを分割して受けとって追加する
+				pickled_data = self.recvall(conn)
 			except ConnectionRasetError:
 				# クライアント側でプログラムを強制終了させた場合
 				self.server_disconnect_client(client_info)
@@ -164,7 +176,7 @@ class NetworkManager():
 		self.transmit_data(self.DST_SERVER, Event.CLIENT_REQUEST_SHORT_ADDRESS, random_hash)
 		while True:
 			# サーバーからから送信されたメッセージを 1024 バイトずつ受信
-			pickled_data = client_socket.recv(10240)
+			pickled_data = client_socket.recv(4096)
 			raw_data = Event.unpickle(pickled_data)
 			if raw_data['msg'] == Event.SERVER_SEND_SHORT_ADDRESS and raw_data['payload'] == random_hash:
 				self.my_short_address = raw_data['dst']
@@ -172,8 +184,9 @@ class NetworkManager():
 
 		while True:
 			try:
-				# サーバーからから送信されたメッセージを 1024 バイトずつ受信
-				pickled_data = client_socket.recv(10240)
+				# サーバーからから送信されたメッセージを受信
+				pickled_data = self.recvall(client_socket)
+				print(len(pickled_data))
 				raw_data = Event.unpickle(pickled_data)
 				if raw_data['dst'] == self.my_short_address:
 					self.receive_data_que.append(raw_data)
